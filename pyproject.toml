@@ -1,7 +1,7 @@
 [project]
-name = "directsupply-project"
+name = "directsupply-chatbot-kata"
 version = "0.1.0"
-description = "Add your description here"
+description = "This project is designed to demonstrate an agentic AI-assisted approach to food procurement workflows in healthcare and senior living environments, aligned with Direct Supply and DSSI’s real-world use cases."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
