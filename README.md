@@ -1,4 +1,7 @@
 # Agentic Food Procurement Assistant (Take-Home Kata)
+**Name:** Karl Montejo
+**Date:** 2/8/2026
+**Company:** Direct Supply
 
 This project is designed to demonstrate an agentic AI-assisted approach to food procurement workflows in healthcare and senior living environments, aligned with Direct Supply and DSSI’s real-world use cases.
 
