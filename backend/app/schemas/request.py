@@ -1,11 +1,10 @@
+# what the frontend sends us — just a session id and the new message.
+# the backend owns the full conversation history, the frontend doesn't
+# need to track or send it back each time.
+
 from pydantic import BaseModel
 
 
-class MessagePayload(BaseModel):
-    role: str
-    content: str
-
-
 class ChatRequest(BaseModel):
-    """Inbound chat request from the frontend."""
-    messages: list[MessagePayload]
+    session_id: str | None = None   # omit to start a new conversation
+    message: str                    # the user's latest message

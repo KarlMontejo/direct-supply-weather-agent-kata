@@ -1,6 +1,4 @@
-"""
-Calculator tool — evaluates basic arithmetic expressions.
-"""
+# simple arithmetic tool the agent uses for cost totals, quantity math, etc.
 
 from langchain.tools import tool
 

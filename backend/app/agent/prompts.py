@@ -1,22 +1,17 @@
-"""
-System prompts for the procurement agent and compliance sub-agent.
-
-Prompts are curated from the project documentation:
-- docs/problem-solution.md — domain context and challenges
-- docs/user-stories.md    — supported workflows
-- docs/architecture.md    — design principles and guarantees
-- ai_services/data/policy.txt — procurement compliance policy
-"""
+# system prompts for the main procurement agent and the compliance sub-agent.
+# these are loaded once at startup and injected into the respective agents.
+# the compliance prompt embeds the full policy.txt so the sub-agent has
+# all the rules it needs without extra tool calls.
 
 from pathlib import Path
 
-_AI_SERVICES_ROOT = Path(__file__).resolve().parent.parent
-_POLICY_PATH = _AI_SERVICES_ROOT / "data" / "policy.txt"
+_APP_ROOT = Path(__file__).resolve().parent.parent
+_POLICY_PATH = _APP_ROOT / "data" / "policy.txt"
 
 _policy_text = _POLICY_PATH.read_text()
 
 # ---------------------------------------------------------------------------
-# Main procurement agent
+# main procurement agent — this is the "brain" that talks to the user
 # ---------------------------------------------------------------------------
 
 PROCUREMENT_SYSTEM_PROMPT = """\
@@ -138,7 +133,7 @@ quantities, and pricing.
 """
 
 # ---------------------------------------------------------------------------
-# Compliance sub-agent
+# compliance sub-agent — a second llm that only does policy checking
 # ---------------------------------------------------------------------------
 
 COMPLIANCE_SYSTEM_PROMPT = f"""\

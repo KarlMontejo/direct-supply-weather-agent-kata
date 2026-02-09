@@ -1,12 +1,10 @@
-"""
-Database query tool — searches the in-memory procurement database via SQL.
-
-Supports queries across three tables: products, contracts, and inventory.
-"""
+# lets the agent query the procurement database using raw sql.
+# the docstring doubles as the tool description the llm reads to
+# know what tables exist and how to write queries against them.
 
 import json
 from langchain.tools import tool
-from ai_services.data_access.loader import db
+from backend.app.data_access.loader import db
 
 
 @tool
@@ -34,7 +32,7 @@ def product_search(sql_query: str) -> str:
       approved_pack_sizes (TEXT — comma-separated), approved_suppliers (TEXT — comma-separated),
       required_dietary_flags (TEXT — comma-separated), prohibited_ingredients (TEXT — comma-separated),
       max_sodium_mg_per_serving (INTEGER or NULL), max_price_per_unit (REAL or NULL),
-      facility (TEXT — always 'karls_senior_living_dallas', Karl's Senior Living of Dallas only),
+      facility (TEXT — always 'karls_senior_living_dallas'),
       effective_start (TEXT — ISO date), effective_end (TEXT — ISO date),
       is_active (INTEGER — 1=active, 0=expired)
 

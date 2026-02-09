@@ -1,3 +1,6 @@
+# mirrors the products table in the database.
+# used by the product_search tool to validate rows coming back from sql.
+
 from pydantic import BaseModel
 from typing import Literal
 

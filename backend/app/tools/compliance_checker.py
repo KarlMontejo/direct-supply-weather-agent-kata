@@ -1,9 +1,7 @@
-"""
-Compliance checker tool — evaluates product orders against procurement policy.
-
-Internally delegates to a compliance sub-agent (LLM with structured output)
-that reasons over the policy text and returns a ComplianceAssessment.
-"""
+# wraps a separate llm (the "compliance sub-agent") that checks whether
+# a proposed order follows Karl's procurement contracts and policies.
+# when the main agent calls this tool, it hands off the order to the
+# sub-agent which returns a structured pass/fail assessment.
 
 from langchain.tools import tool
 from langchain.agents import create_agent
@@ -11,11 +9,10 @@ from langchain.chat_models import init_chat_model
 
 from backend.app.schemas.compliance_assessment import ComplianceAssessment
 from backend.app.schemas.product_order import ProductOrder
-from ai_services.agent.prompts import COMPLIANCE_SYSTEM_PROMPT
+from backend.app.agent.prompts import COMPLIANCE_SYSTEM_PROMPT
 from backend.app.config import MODEL_NAME, MODEL_TEMPERATURE
 
-# Compliance sub-agent — a structured-output LLM, not a tool-calling agent.
-# It evaluates orders against the procurement policy loaded in prompts.py.
+# initialize the compliance sub-agent once at import time
 _compliance_model = init_chat_model(model=MODEL_NAME, temperature=MODEL_TEMPERATURE)
 
 _compliance_agent = create_agent(
@@ -30,14 +27,15 @@ def compliance_checker(
     product_order: ProductOrder, original_user_query: str
 ) -> ComplianceAssessment:
     """
-    Evaluate a product order for compliance with company procurement policies.
+    Evaluate a product order for compliance with Karl's Senior Living
+    of Dallas procurement policies and contracts.
 
     Args:
-        product_order: The proposed order containing line items (product_id + quantity).
-        original_user_query: The user's original procurement request for context.
+        product_order: the proposed order with line items (product_id + quantity).
+        original_user_query: the user's original request, for context.
 
     Returns:
-        A ComplianceAssessment with an is_compliant flag and a list of violations.
+        a ComplianceAssessment with is_compliant flag and list of violations.
     """
     inputs = {
         "messages": [

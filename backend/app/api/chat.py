@@ -1,11 +1,10 @@
-"""
-POST /chat — accepts a conversation history and returns the agent's reply.
-"""
+# the chat endpoint — receives a user message, runs it through the agent,
+# and sends back the full conversation history with tool usage annotations.
 
 from fastapi import APIRouter, HTTPException
 
 from backend.app.schemas.request import ChatRequest
-from backend.app.schemas.response import ChatResponse
+from backend.app.schemas.response import ChatResponse, MessageOut
 from backend.app.services import agent as agent_service
 
 router = APIRouter()
@@ -14,27 +13,21 @@ router = APIRouter()
 @router.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
     """
-    Send a conversation to the procurement agent and get a reply.
+    send a message to the procurement agent.
 
-    The frontend sends the full message history so the agent has
-    context across turns. The backend extracts the final assistant
-    message and returns it as a plain string.
+    the backend keeps the conversation history — the frontend just sends
+    the new message and a session_id. we return the full history so the
+    frontend can render the whole chat including which tools were used.
     """
     try:
-        payload = {
-            "messages": [
-                {"role": m.role, "content": m.content}
-                for m in req.messages
-            ]
-        }
-        result = agent_service.invoke(payload)
+        session_id, history, _ = agent_service.chat(req.session_id, req.message)
 
-        # The agent returns a dict with a "messages" key.
-        # The last message is the assistant's reply.
-        last_msg = result["messages"][-1]
-        reply = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
+        messages_out = [
+            MessageOut(role=role, content=content, tools_used=tools)
+            for role, content, tools in history
+        ]
 
-        return ChatResponse(reply=reply)
+        return ChatResponse(session_id=session_id, messages=messages_out)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

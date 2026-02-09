@@ -1,3 +1,7 @@
+// the main chat interface. manages the session id and message list.
+// the backend owns the conversation state — we send our message,
+// get back the full history, and just render whatever it gives us.
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -6,12 +10,13 @@ import { sendChat } from "../services/apiClient";
 import MessageBubble from "./MessageBubble";
 
 export default function ChatWindow() {
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // scroll to bottom whenever the messages change or loading state flips
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -20,24 +25,26 @@ export default function ChatWindow() {
     const text = input.trim();
     if (!text || loading) return;
 
-    const userMsg: Message = { role: "user", content: text };
-    const updated = [...messages, userMsg];
-    setMessages(updated);
+    // optimistically show the user's message right away
+    const optimistic: Message = { role: "user", content: text, tools_used: [] };
+    setMessages((prev) => [...prev, optimistic]);
     setInput("");
     setLoading(true);
 
     try {
-      const reply = await sendChat(updated);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: reply },
-      ]);
+      const res = await sendChat(sessionId, text);
+
+      // the backend gives us the full history — replace our local copy
+      setSessionId(res.session_id);
+      setMessages(res.messages);
     } catch (err) {
+      // if something breaks, show the error as a fake assistant message
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: `Something went wrong. Please try again.\n\n${err}`,
+          content: `something went wrong. please try again.\n\n${err}`,
+          tools_used: [],
         },
       ]);
     } finally {
@@ -54,7 +61,7 @@ export default function ChatWindow() {
 
   return (
     <div className="flex h-screen flex-col">
-      {/* Header */}
+      {/* header */}
       <header className="flex items-center gap-3 border-b border-[#e9ecef] bg-white px-6 py-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0059b3] text-sm font-bold text-white">
           DS
@@ -64,12 +71,12 @@ export default function ChatWindow() {
             Procurement Assistant
           </h1>
           <p className="text-xs text-[#6c757d]">
-            Direct Supply &middot; Decision Support
+            Karl&apos;s Senior Living of Dallas
           </p>
         </div>
       </header>
 
-      {/* Messages */}
+      {/* message area */}
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-2xl flex-col gap-4">
           {messages.length === 0 && !loading && (
@@ -108,7 +115,7 @@ export default function ChatWindow() {
         </div>
       </main>
 
-      {/* Input bar */}
+      {/* input bar */}
       <footer className="border-t border-[#e9ecef] bg-white px-6 py-4">
         <div className="mx-auto flex max-w-2xl gap-3">
           <textarea
