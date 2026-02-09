@@ -1,56 +1,92 @@
-## User Stories
+# User Stories
 
-### Context
+## User Story 1: Hard Stock-Out Resolution
 
-The goal of this project is to reduce friction in food procurement by helping users resolve stock-outs, validate compliance, and discover viable alternatives using agentic reasoning across structured data sources.
+### User
+> “The pre-cooked turkey sausage we usually order is unavailable. What should I order instead?”
 
-In healthcare and senior living, food procurement teams operate under pressure to:
-- Maintain uninterrupted food service
-- Stay compliant with complex contracts and dietary requirements
-- Respond quickly to supply-chain volatility
+### Agent Behavior
+- Detects stock-out intent  
+- Confirms unavailability via Inventory API  
+- Retrieves compliance rules via Contracts API  
+- Searches for candidate alternatives via Product Search  
+- Uses Open Food Facts to validate ingredient equivalence  
+- Filters for availability and compliance  
 
-Food procurement is especially challenging because it is:
-- **High-frequency** (daily ordering)
-- **Constraint-heavy** (contracts, nutrition, suppliers)
-- **Operationally fragile** (stock-outs cascade quickly)
-
----
-
-### Problems
-
-#### Stock-outs Disrupt Operations
-- Products frequently become unavailable or partially unavailable
-- A single stock-out can impact multiple meals and facilities
-- Manual substitution is slow and error-prone
-
-#### Contract Compliance Is Easy to Break
-- Contracts specify allowed brands, pack sizes, suppliers, and effective dates
-- Small deviations (brand, unit size, distributor) break compliance
-- Non-compliance leads to cost leakage and reporting issues
-
-#### Product Discovery Is Fragmented
-- Finding compliant, available alternatives requires checking multiple systems
-- Ingredient and nutrition equivalence is hard to validate quickly
-- Staff rely on tribal knowledge under time pressure
+### Agent Response
+> “The requested turkey sausage is currently unavailable. A compliant alternative is Brand B pre-cooked turkey sausage, which is available and meets your contract requirements. It matches the same protein source and dietary constraints, with a slightly different seasoning profile.”
 
 ---
 
-### Solution
+## User Story 2: Partial Stock-Out with Order Revision
 
-An **agentic LLM-powered procurement assistant** that acts as a **decision-support tool** for food procurement workflows in healthcare and senior living.
+### User
+> “We need 10 cases of this product, but I heard availability is limited.”
 
-The system:
-- Assists with resolving stock-outs
-- Validates contract and requirement compliance
-- Recommends curated, compliant product alternatives
-- Drafts order suggestions (non-executing)
+### Agent Behavior
+- Confirms partial availability (e.g., 4 cases available)  
+- Suggests partial fulfillment  
+- Recommends substitute for remaining quantity  
+
+### Agent Response
+> “Only 4 of the 10 requested cases are currently available. I recommend ordering the available quantity and substituting the remaining 6 cases with Brand C, which is contract-compliant and in stock.”
 
 ---
 
-### Data Sources
+## User Story 3: Contract Compliance Check
 
-#### Mock Contracts API
-- Simulates real-world food procurement contracts and compliance rules
+### User
+> “Is this product compliant with our contract?”
 
-#### Mock Inventory API
-- Simulates real-time inventory availability, including hard and partial stock-outs
+### Agent Behavior
+- Inspects product details  
+- Cross-validates brand, pack size, supplier, and effective dates  
+
+### Agent Response
+> “This product is not contract-compliant due to an unapproved pack size. The 10 lb case of the same product is approved under your current agreement.”
+
+---
+
+## User Story 4: Curated Product Search
+
+### User
+> “Show me compliant chicken breast options we can order right now.”
+
+### Agent Behavior
+- Queries contract-approved product list  
+- Filters by current inventory availability  
+- Ranks options by relevance  
+
+### Agent Response
+> “Here are three contract-compliant chicken breast products currently available. Option A is the closest match to your standard order, while Option B offers a lower price per unit.”
+
+---
+
+## User Story 5: Requirement Cross-Validation
+
+### User
+> “We need a substitute that meets low-sodium dietary requirements.”
+
+### Agent Behavior
+- Retrieves dietary constraints from contract data  
+- Uses Open Food Facts to compare nutrition data  
+- Eliminates non-compliant products  
+
+### Agent Response
+> “Brand D meets the low-sodium requirement and is the closest ingredient match. Brand E exceeds sodium limits and is not recommended.”
+
+---
+
+## User Story 6: Drafting an Order Recommendation
+
+### User
+> “Can you help me revise today’s order based on what’s available?”
+
+### Agent Behavior
+- Reviews existing order  
+- Flags unavailable or risky items  
+- Suggests substitutions  
+- Produces a draft order summary  
+
+### Agent Response
+> “Based on current availability, I recommend the following changes to today’s order… This draft preserves compliance and avoids stock-outs.”

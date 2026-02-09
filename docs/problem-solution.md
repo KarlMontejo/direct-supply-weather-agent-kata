@@ -1,56 +1,24 @@
-## Problem and Solution
+# Problem and Solution
 
-### Context
+## Context
 
-The goal of this project is to reduce friction in food procurement by helping users resolve stock-outs, validate compliance, and discover viable alternatives using agentic reasoning across structured data sources.
+Food procurement in healthcare and senior living is high-frequency, constraint-heavy, and fragile. Stock-outs cascade quickly. Contracts define brands, pack sizes, suppliers, and effective dates — small deviations break compliance. Finding compliant, available substitutes is slow and error-prone.
 
-In healthcare and senior living, food procurement teams operate under pressure to:
-- Maintain uninterrupted food service
-- Stay compliant with complex contracts and dietary requirements
-- Respond quickly to supply-chain volatility
+## Problems
 
-Food procurement is especially challenging because it is:
-- **High-frequency** (daily ordering)
-- **Constraint-heavy** (contracts, nutrition, suppliers)
-- **Operationally fragile** (stock-outs cascade quickly)
+1. **Stock-outs** — Products go unavailable or partially unavailable. Manual substitution is slow.
+2. **Compliance** — Contracts specify brands, sizes, suppliers, dietary rules. Easy to break, hard to fix.
+3. **Discovery** — Checking multiple systems for compliant alternatives is fragmented. Staff rely on tribal knowledge.
 
----
+## Solution
 
-### Problems
+An agentic LLM chatbot that acts as decision-support. It does not place orders. It recommends and explains.
 
-#### Stock-outs Disrupt Operations
-- Products frequently become unavailable or partially unavailable
-- A single stock-out can impact multiple meals and facilities
-- Manual substitution is slow and error-prone
+- Resolves stock-outs by finding compliant substitutes
+- Validates proposed orders against contracts and policy
+- Searches catalog by name, price, supplier, availability, dietary flags
+- Drafts order recommendations with reasoning
 
-#### Contract Compliance Is Easy to Break
-- Contracts specify allowed brands, pack sizes, suppliers, and effective dates
-- Small deviations (brand, unit size, distributor) can break compliance
-- Non-compliance leads to cost leakage and reporting issues
+## Data
 
-#### Product Discovery Is Fragmented
-- Finding compliant, available alternatives requires checking multiple systems
-- Ingredient and nutrition equivalence is difficult to validate quickly
-- Staff often rely on tribal knowledge under time pressure
-
----
-
-### Solution
-
-An **agentic LLM-powered procurement assistant** that acts as a **decision-support tool** for food procurement workflows in healthcare and senior living.
-
-The system:
-- Assists with resolving stock-outs
-- Validates contract and requirement compliance
-- Recommends curated, compliant product alternatives
-- Drafts order suggestions (non-executing)
-
----
-
-### Data Sources
-
-#### Mock Contracts API
-- Simulates real-world food procurement contracts and compliance rules
-
-#### Mock Inventory API
-- Simulates real-time inventory availability, including hard and partial stock-outs
+In-memory SQLite seeded from mock JSONL: products, contracts, inventory. Designed with edge cases (expired contracts, stock-outs, prohibited ingredients). See `backend/app/data/EDGE_CASES.md`.
