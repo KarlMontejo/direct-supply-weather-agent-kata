@@ -1,90 +1,154 @@
-# Agentic Food Procurement Assistant (Take-Home Kata)
+# Agentic Food Procurement Assistant
+
 **Name:** Karl Montejo
 **Date:** 2/8/2026
 **Company:** Direct Supply
 
-This project is designed to demonstrate an agentic AI-assisted approach to food procurement workflows in healthcare and senior living environments, aligned with Direct Supply and DSSI’s real-world use cases.
+---
 
-The application focuses on reducing friction in food procurement by assisting users with stock-outs, contract compliance validation, and curated product recommendations.
+## What This Is
+
+An AI-powered chatbot that helps food procurement teams at senior living facilities make better purchasing decisions. It searches product catalogs, checks orders against contracts and compliance rules, and recommends compliant alternatives when things go wrong (stock-outs, expired contracts, dietary violations).
+
+Built for **Karl's Senior Living of Dallas** as a demonstration of how agentic AI can reduce friction in healthcare food procurement.
 
 ---
-## Project Inspiration
-This project was inspired by research into Direct Supply DSSI’s use of AI in healthcare and senior living procurement, particularly their focus on food procurement workflows. Reviewing DSSI blog posts and product initiatives highlighted how AI is applied as a decision-support tool to reduce operational friction, especially around stock-outs and contract compliance.
 
-The take-home kata included options to build a chatbot and to integrate with a real-world API. Rather than treating these separately, I chose to combine them by building an agentic LLM-powered chatbot that orchestrates API and tool calls to assist real-world procurement workflows. The system integrates mocked enterprise data sources (such as inventory and contracts) alongside external product data to simulate how AI supports procurement decisions in practice.
+## Problem
 
-The goal of this project is to demonstrate how agentic AI can help reduce rework during order re-fulfillment by identifying stock-outs, validating compliance, and recommending viable product alternatives while keeping humans in the loop.
+Food procurement in healthcare and senior living is operationally complex:
 
----
-## Problem Statement
-Food procurement in healthcare and senior living is operationally complex and highly constrained. Procurement teams must:
-- Ensure uninterrupted food service despite frequent stock-outs
-- Adhere to detailed contracts covering brands, pack sizes, suppliers, and dietary requirements
-- Quickly identify compliant substitute products when availability changes
-- Cross-validate requirements across multiple data sources under time pressure
-These tasks are often handled manually, requiring procurement professionals to cross-reference inventory systems, contracts, and product catalogs. This process is time-consuming, error-prone, and difficult to scale.
+- **Stock-outs are frequent** — a single unavailable product can disrupt meals across an entire facility
+- **Contracts are strict** — approved brands, pack sizes, suppliers, dietary restrictions, and effective dates must all align
+- **Finding substitutes is slow** — staff manually cross-reference inventory, contracts, and catalogs under time pressure
+
+These tasks are repetitive, error-prone, and hard to scale.
 
 ---
-## Solution Overview
-This project implements an **agentic LLM-powered chatbot** that acts as a **decision-support assistant** for food procurement workflows.
-The system helps users:
-- Detect and resolve hard or partial stock-outs
-- Validate products against contract and compliance requirements
-- Discover curated, compliant product alternatives
-- Draft order recommendations (non-executing)
-The chatbot does not place orders or override procurement rules. Instead, it provides explainable recommendations that keep humans in the loop.
+
+## Solution
+
+An **agentic LLM-powered chatbot** that acts as a decision-support tool. It does not place orders — it recommends and explains.
+
+The system helps procurement agents:
+
+- Detect and resolve stock-outs by finding compliant substitutes
+- Validate proposed orders against contract and compliance rules
+- Search the product catalog by name, price, supplier, availability, or dietary requirements
+- Draft order recommendations with clear reasoning
+
+The AI agent has three tools it can call on its own:
+
+| Tool | What It Does |
+|---|---|
+| `product_search` | Queries the product catalog, contracts, and inventory via SQL |
+| `compliance_checker` | Evaluates a proposed order against procurement policies using a second LLM |
+| `calculator` | Does arithmetic for cost totals and quantity planning |
 
 ---
-## Architecture Overview
-Service-Oriented Architecture
-- Frontend (Next.js / React)
-- Backend API (Python / FastAPI)
-- AI Orchestration Layer (LangChain)
-- Data & Tooling Layer:
-    - Mock Contracts API
-    - Mock Inventory API
-    - Open Food Facts API
 
-### Key Components
-#### Frontend
-- Built with **React using the Next.js framework**
-- Provides a simple chat interface for procurement workflows
-- Displays recommendations, explanations, and order drafts
-#### Backend
-- Built with **Python and FastAPI**
-- Handles request validation, orchestration, and error handling
-- Acts as the control layer between the frontend and AI service
-#### AI Layer
-- Built with **LangChain**
-- Implements agentic reasoning to:
-  - Interpret user intent
-  - Select appropriate tools
-  - Reason across inventory, contracts, and product data
-  - Generate explainable recommendations
-#### Data Sources
-- **Mock Contracts API**  
-  Simulates real-world procurement contracts and compliance rules.
-- **Mock Inventory API**  
-  Simulates real-time inventory availability, including stock-outs.
+## Architecture
 
-Mock APIs act as sources of truth for procurement rules and availability, while the live API is used only for reference and validation.
+```
+frontend/  (Next.js + React + Tailwind)
+  └── Chat UI → sends messages to backend
+
+backend/   (Python + FastAPI + LangChain)
+  ├── app/api/         → POST /chat endpoint
+  ├── app/agent/       → LangGraph procurement agent + system prompts
+  ├── app/tools/       → product_search, compliance_checker, calculator
+  ├── app/data_access/ → in-memory SQLite loader
+  ├── app/data/        → mock products, contracts, inventory (JSONL)
+  ├── app/schemas/     → Pydantic models for API + domain objects
+  ├── app/services/    → session management + agent bridge
+  └── db/              → SQL schema
+```
+
+The backend manages conversation sessions — the frontend just sends the new message and a session ID, and gets back the full chat history with tool usage annotations.
 
 ---
-## What This Project Demonstrates
-- Understanding of real-world food procurement challenges
-- Agentic AI design using structured tools and constraints
-- Clean, maintainable system architecture
-- Practical use of LLMs for decision support
-- Alignment with healthcare and senior living procurement workflows
+
+## Data
+
+Three mock datasets loaded into an in-memory SQLite database at startup:
+
+| Table | Records | What It Represents |
+|---|---|---|
+| `products` | 44 | Food catalog with brand, category, ingredients, nutrition, dietary flags, pricing |
+| `contracts` | 14 | Procurement rules for Karl's Senior Living — approved brands, suppliers, prohibited ingredients, sodium limits |
+| `inventory` | 72 | Stock levels across 3 distribution centers (midwest, southeast, northeast) |
+
+The data is intentionally designed with edge cases: expired contracts, off-contract alternatives that look cheaper, stock-outs that force substitution, prohibited ingredients (pork, shellfish, peanuts), and facility-specific sodium limits. See `backend/app/data/EDGE_CASES.md` for the full test scenario matrix.
 
 ---
+
+## Running It
+
+**Prerequisites:** Python 3.11+, Node.js 18+, an OpenAI API key
+
+**Backend:**
+
+```bash
+cp .env.example .env
+# add your OPENAI_API_KEY to .env
+
+set -a && source .env && set +a && uv run uvicorn backend.app.main:app --reload
+```
+
+**Frontend:**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on `localhost:3000`, the backend on `localhost:8000`.
+
+---
+
 ## Tech Stack
-- **Frontend:** React, Next.js
-- **Backend:** Python, FastAPI
-- **AI Orchestration:** LangChain
-- **Data:** Mock JSON-based APIs, Open Food Facts API
+
+- **Frontend:** React, Next.js, Tailwind CSS, TypeScript
+- **Backend:** Python, FastAPI, Pydantic
+- **AI:** LangChain, LangGraph, OpenAI (gpt-4.1-mini)
+- **Database:** SQLite (in-memory)
+- **Data:** JSONL seed files for products, contracts, and inventory
+
+---
+
+## Project Structure
+
+```
+├── backend/
+│   ├── app/
+│   │   ├── agent/           # procurement agent + system prompts
+│   │   ├── api/             # POST /chat endpoint
+│   │   ├── data/            # mock JSONL datasets + edge case docs
+│   │   ├── data_access/     # sqlite loader
+│   │   ├── schemas/         # pydantic models
+│   │   ├── services/        # session management + agent bridge
+│   │   ├── tools/           # product_search, compliance_checker, calculator
+│   │   ├── config.py        # env var configuration
+│   │   └── main.py          # fastapi entrypoint
+│   └── db/
+│       └── schema.sql       # sqlite table definitions
+├── frontend/
+│   ├── app/                 # next.js pages and layout
+│   ├── components/          # ChatWindow, MessageBubble
+│   └── services/            # api client
+├── notebooks/
+│   └── poc.ipynb            # original proof of concept
+├── docs/                    # architecture, user stories, decisions
+├── .env.example
+├── pyproject.toml
+└── README.md
+```
 
 ---
 
 ## Notes
-In a production environment, the mock data sources would be replaced with enterprise inventory, contract, and supplier systems, and the services would be deployed independently.
+
+- The mock data is designed for demonstration, not production. In a real system, the JSONL files would be replaced by enterprise inventory, contract, and supplier APIs.
+- The in-memory SQLite database resets on every server restart and there is no persistence.
+- The chatbot does not execute orders. It produces recommendations that humans review and approve.
